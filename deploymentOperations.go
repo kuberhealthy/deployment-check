@@ -204,8 +204,8 @@ func (r *CheckRunner) deleteDeploymentAndWait(ctx context.Context) error {
 
 // deleteDeployment issues the delete call for the deployment resource.
 func (r *CheckRunner) deleteDeployment(ctx context.Context) error {
-	// Prepare foreground delete options.
-	deletePolicy := metav1.DeletePropagationForeground
+	// Prepare background delete options to avoid foreground finalizer stalls.
+	deletePolicy := metav1.DeletePropagationBackground
 	graceSeconds := int64(1)
 	deleteOpts := metav1.DeleteOptions{
 		GracePeriodSeconds: &graceSeconds,

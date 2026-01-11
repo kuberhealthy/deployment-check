@@ -106,8 +106,8 @@ func (r *CheckRunner) deleteServiceAndWait(ctx context.Context) error {
 
 // deleteService issues the delete call for the service resource.
 func (r *CheckRunner) deleteService(ctx context.Context) error {
-	// Prepare foreground delete options.
-	deletePolicy := metav1.DeletePropagationForeground
+	// Prepare background delete options to avoid foreground finalizer stalls.
+	deletePolicy := metav1.DeletePropagationBackground
 	graceSeconds := int64(1)
 	deleteOpts := metav1.DeleteOptions{
 		GracePeriodSeconds: &graceSeconds,
