@@ -193,6 +193,13 @@ func (r *CheckRunner) createContainerConfig(imageURL string) corev1.Container {
 		SuccessThreshold:    probeSuccessThreshold,
 		FailureThreshold:    probeFailureThreshold,
 	}
+	// Configure the probe handler to use a TCP socket on the container port.
+	liveProbe.TCPSocket = &corev1.TCPSocketAction{
+		Port: intstr.IntOrString{
+			IntVal: r.cfg.CheckContainerPort,
+			StrVal: strconv.Itoa(int(r.cfg.CheckContainerPort)),
+		},
+	}
 
 	// Assemble the readiness probe.
 	readyProbe := corev1.Probe{
@@ -201,6 +208,13 @@ func (r *CheckRunner) createContainerConfig(imageURL string) corev1.Container {
 		PeriodSeconds:       probePeriodSeconds,
 		SuccessThreshold:    probeSuccessThreshold,
 		FailureThreshold:    probeFailureThreshold,
+	}
+	// Configure the probe handler to use a TCP socket on the container port.
+	readyProbe.TCPSocket = &corev1.TCPSocketAction{
+		Port: intstr.IntOrString{
+			IntVal: r.cfg.CheckContainerPort,
+			StrVal: strconv.Itoa(int(r.cfg.CheckContainerPort)),
+		},
 	}
 
 	// Build the container spec.
