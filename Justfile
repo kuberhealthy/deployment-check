@@ -11,4 +11,4 @@ test:
 
 # Build the deployment check binary locally.
 binary:
-	go build -o bin/deployment-check ./
+	go build -o bin/deployment-check ./cmd/deployment-check

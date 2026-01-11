@@ -8,7 +8,7 @@ RUN go mod download
 # Copy source and build.
 COPY . /build
 ENV CGO_ENABLED=0
-RUN go build -v -o /build/bin/deployment-check ./
+RUN go build -v -o /build/bin/deployment-check ./cmd/deployment-check
 
 # Create a non-root user.
 RUN groupadd -g 999 user && \
