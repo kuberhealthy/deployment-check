@@ -1,11 +1,9 @@
-name: Publish
+name: Publish main
 
 on:
   push:
     branches:
       - main
-    tags:
-      - "v*"
 
 jobs:
   publish:
@@ -26,17 +24,14 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_HUB_USER }}
-          password: ${{ secrets.DOCKER_HUB_PAT }}
+          username: ${ secrets.DOCKER_HUB_USER }
+          password: ${ secrets.DOCKER_HUB_PAT }
 
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: kuberhealthy/deployment-check
-          tags: |
-            type=sha,format=short
-            type=ref,event=tag
+      - name: Set image tag
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          IMAGE_TAG="kuberhealthy/deployment-check:${SHORT_SHA}"
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -44,5 +39,9 @@ jobs:
           context: .
           file: ./Containerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${ env.IMAGE_TAG }
+
+      - name: Publish summary
+        run: |
+          echo "Images pushed:" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ${ env.IMAGE_TAG }" >> "$GITHUB_STEP_SUMMARY"
