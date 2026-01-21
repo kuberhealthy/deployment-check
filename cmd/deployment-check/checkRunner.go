@@ -58,13 +58,13 @@ func (r *CheckRunner) run(ctx context.Context) error {
 		if cleanupErr != nil {
 			return fmt.Errorf("service creation failed: %w; cleanup error: %w", err, cleanupErr)
 		}
-		return err
+		return fmt.Errorf("service creation failed: %w", err)
 	}
 
 	// Fetch the service IP that will be used for HTTP checks.
 	serviceIP, err := r.getServiceClusterIP(ctx, serviceResult)
 	if err != nil {
-		return err
+		return fmt.Errorf("service lookup failed: %w", err)
 	}
 
 	// Validate a 200 response from the service.
@@ -74,7 +74,7 @@ func (r *CheckRunner) run(ctx context.Context) error {
 		if cleanupErr != nil {
 			return fmt.Errorf("service request failed: %w; cleanup error: %w", err, cleanupErr)
 		}
-		return err
+		return fmt.Errorf("service request failed: %w", err)
 	}
 
 	// Handle optional rolling updates.

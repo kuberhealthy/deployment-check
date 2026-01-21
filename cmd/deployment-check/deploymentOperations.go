@@ -70,14 +70,14 @@ func (r *CheckRunner) createDeploymentAndWait(ctx context.Context, deadline time
 			}
 		case podErr := <-podErrorChan:
 			if podErr != nil {
-				return nil, podErr
+				return nil, r.decorateDeploymentError(ctx, "deployment create", podErr)
 			}
 		case <-ctx.Done():
 			cleanupErr := r.cleanup(ctx)
 			if cleanupErr != nil {
 				return nil, fmt.Errorf("failed to clean up after deployment create: %w", cleanupErr)
 			}
-			return nil, fmt.Errorf("context expired while waiting for deployment to create")
+			return nil, r.decorateDeploymentError(ctx, "deployment create", fmt.Errorf("context expired while waiting for deployment to create"))
 		}
 	}
 }
@@ -144,14 +144,14 @@ func (r *CheckRunner) updateDeploymentAndWait(ctx context.Context, deadline time
 			}
 		case podErr := <-podErrorChan:
 			if podErr != nil {
-				return nil, podErr
+				return nil, r.decorateDeploymentError(ctx, "deployment update", podErr)
 			}
 		case <-ctx.Done():
 			cleanupErr := r.cleanup(ctx)
 			if cleanupErr != nil {
 				return nil, fmt.Errorf("failed to clean up after deployment update: %w", cleanupErr)
 			}
-			return nil, fmt.Errorf("context expired while waiting for deployment to update")
+			return nil, r.decorateDeploymentError(ctx, "deployment update", fmt.Errorf("context expired while waiting for deployment to update"))
 		}
 	}
 }
@@ -299,7 +299,7 @@ func (r *CheckRunner) checkDeploymentPodEvent(ctx context.Context, reason error)
 					containerStat.State.Waiting.Message,
 				)
 				log.WithError(err).Errorln("Capturing unexpected container error.")
-				return fmt.Errorf("%s when %w", containerStat.State.Waiting.Reason, reason)
+				return fmt.Errorf("pod state error: %s; stage: %w", err.Error(), reason)
 			}
 
 			// Inspect events associated with the pod for errors.
@@ -336,7 +336,7 @@ func (r *CheckRunner) checkDeploymentPodEvent(ctx context.Context, reason error)
 					eventMsg,
 				)
 				log.WithError(err).Errorln("Capturing unexpected pod event.")
-				return fmt.Errorf("%s when %w", eventReason, reason)
+				return fmt.Errorf("pod event error: %s; stage: %w", err.Error(), reason)
 			}
 		}
 
@@ -349,7 +349,7 @@ func (r *CheckRunner) checkDeploymentPodEvent(ctx context.Context, reason error)
 				pod.Status.Message,
 			)
 			log.WithError(err).Errorln("Pod in failed status.")
-			return fmt.Errorf("%s when %w", pod.Status.Reason, reason)
+			return fmt.Errorf("pod failed: %s; stage: %w", err.Error(), reason)
 		}
 	}
 
