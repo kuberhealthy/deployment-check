@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -23,6 +24,11 @@ func (r *CheckRunner) requestServiceEndpoint(ctx context.Context, address string
 	// Validate address before attempting the request.
 	if len(address) == 0 {
 		return fmt.Errorf("given blank service address for HTTP call")
+	}
+
+	// Bracket IPv6 addresses for valid URL construction.
+	if ip := net.ParseIP(address); ip != nil && ip.To4() == nil {
+		address = "[" + address + "]"
 	}
 
 	// Ensure the address is an HTTP URL.
