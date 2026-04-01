@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -20,14 +21,10 @@ const (
 
 // requestServiceEndpoint performs a GET against the service endpoint with retries.
 func (r *CheckRunner) requestServiceEndpoint(ctx context.Context, address string) error {
-	// Validate address before attempting the request.
-	if len(address) == 0 {
-		return fmt.Errorf("given blank service address for HTTP call")
-	}
-
-	// Ensure the address is an HTTP URL.
-	if !strings.HasPrefix(address, "http://") {
-		address = "http://" + address
+	// Build a valid HTTP URL for the service endpoint.
+	address, err := buildServiceURL(address)
+	if err != nil {
+		return err
 	}
 
 	// Log the request intent.
@@ -104,4 +101,40 @@ func (r *CheckRunner) requestServiceEndpoint(ctx context.Context, address string
 		time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 		attempt++
 	}
+}
+
+// buildServiceURL validates the service address and formats it as an HTTP URL.
+func buildServiceURL(address string) (string, error) {
+	// Reject blank addresses before attempting to format them.
+	if len(address) == 0 {
+		return "", fmt.Errorf("given blank service address for HTTP call")
+	}
+
+	// Bracket IPv6 literals so they remain valid URL hosts.
+	if isIPv6Literal(address) {
+		address = "[" + address + "]"
+	}
+
+	// Prefix the address with HTTP when the scheme is omitted.
+	if !strings.HasPrefix(address, "http://") {
+		address = "http://" + address
+	}
+
+	return address, nil
+}
+
+// isIPv6Literal reports whether the provided address is a raw IPv6 literal.
+func isIPv6Literal(address string) bool {
+	// Ignore already-bracketed hosts and non-IP addresses.
+	if strings.HasPrefix(address, "[") {
+		return false
+	}
+
+	// Parse the address and treat non-IPv4 results as IPv6 literals.
+	ip := net.ParseIP(address)
+	if ip == nil {
+		return false
+	}
+
+	return ip.To4() == nil
 }
