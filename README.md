@@ -11,6 +11,7 @@ This repository builds the container image used by Kuberhealthy to run the deplo
 
 ## Quick start
 - Apply the example manifest: `kubectl apply -f healthcheck.yaml`
+- The bundled manifest is pinned to the latest released image tag.
 - Edit the manifest to set any required inputs for your environment.
 
 ## Build locally
