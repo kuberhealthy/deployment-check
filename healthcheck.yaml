@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: deployment
-          image: ghcr.io/kuberhealthy/deployment-check:v0.1.2
+          image: docker.io/kuberhealthy/deployment-check:v0.1.3
           imagePullPolicy: IfNotPresent
           env:
             - name: CHECK_DEPLOYMENT_REPLICAS
